@@ -8,6 +8,7 @@ def main(page: ft.Page):
     page.title = "DTI Service v3.0"
     page.theme = get_theme()
     page.theme_mode = ft.ThemeMode.DARK
+    page.bgcolor = ThemeColors.BACKGROUND
     page.padding = 0
     page.window_min_width = 1100
     page.window_min_height = 700
@@ -35,9 +36,9 @@ def main(page: ft.Page):
         scripts_content.open_ticket_modal(e)
 
     header = ft.Container(
-        padding=ft.padding.only(left=20, right=20, top=10, bottom=10),
+        padding=ft.Padding(left=20, right=20, top=10, bottom=10),
         bgcolor=ThemeColors.SURFACE,
-        border=ft.border.only(bottom=ft.BorderSide(1, ThemeColors.SURFACE)),
+        border=ft.Border(bottom=ft.BorderSide(1, ThemeColors.SURFACE)),
         content=ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             controls=[
@@ -63,17 +64,44 @@ def main(page: ft.Page):
         )
     )
     
-    tabs = ft.Tabs(
-        selected_index=0,
+    # Flet 0.80+ Tabs API: use TabBar + TabBarView inside Tabs(content, length)
+    tab_items = [
+        ft.Tab(label="PROCEDIMENTOS", icon=ft.Icons.CODE),
+        ft.Tab(label="IMPRESSORAS", icon=ft.Icons.PRINT),
+        ft.Tab(label="OTIMIZAÇÕES", icon=ft.Icons.ROCKET_LAUNCH),
+    ]
+
+    tab_bar = ft.TabBar(
+        tabs=tab_items,
         indicator_color=ThemeColors.PRIMARY,
         label_color=ThemeColors.PRIMARY,
         unselected_label_color=ThemeColors.DISABLED,
-        on_change=lambda _: refresh_all_tabs(), # Atualiza ao trocar de aba
-        tabs=[
-            ft.Tab(text="PROCEDIMENTOS", icon=ft.Icons.CODE, content=scripts_content),
-            ft.Tab(text="IMPRESSORAS", icon=ft.Icons.PRINT, content=printers_content),
-            ft.Tab(text="OTIMIZAÇÕES", icon=ft.Icons.ROCKET_LAUNCH, content=optimizations_content),
+    )
+
+    tab_view = ft.TabBarView(
+        controls=[
+            scripts_content,
+            printers_content,
+            optimizations_content,
         ],
+        expand=True,
+    )
+
+    tabs = ft.Tabs(
+        content=ft.Container(
+            expand=True,
+            content=ft.Column(
+                spacing=0,
+                expand=True,
+                controls=[
+                    tab_bar,
+                    ft.Container(expand=True, content=tab_view),
+                ],
+            ),
+        ),
+        length=len(tab_items),
+        selected_index=0,
+        on_change=lambda _: refresh_all_tabs(),  # Atualiza ao trocar de aba
         expand=True,
     )
 
@@ -98,4 +126,4 @@ def main(page: ft.Page):
     page.add(main_layout)
 
 if __name__ == "__main__":
-    ft.app(target=main, assets_dir="src/assets")
+    ft.run(main=main, assets_dir="src/assets")

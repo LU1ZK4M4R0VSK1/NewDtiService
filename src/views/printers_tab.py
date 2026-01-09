@@ -55,15 +55,19 @@ class PrintersTab(ft.Container):
 
     def handle_install(self):
         if not self.printer_input.value:
-            self.page.show_snack_bar(ft.SnackBar(ft.Text("Por favor, digite um número.")))
+            snack = ft.SnackBar(ft.Text("Por favor, digite um número."))
+            self.page.overlay.append(snack)
+            snack.open = True
+            self.page.update()
             return
 
         success, message = self.vm.process_install(self.printer_input.value)
         
         color = "green" if success else "red"
-        self.page.show_snack_bar(
-            ft.SnackBar(ft.Text(message), bgcolor=color)
-        )
+        snack = ft.SnackBar(ft.Text(message), bgcolor=color)
+        self.page.overlay.append(snack)
+        snack.open = True
+        self.page.update()
         if success:
             self.printer_input.value = ""
             self.update()

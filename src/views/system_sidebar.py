@@ -21,7 +21,7 @@ class SystemSidebar(ft.Container):
             src="logo_itambe.png",
             width=180,
             height=90,
-            fit=ft.ImageFit.CONTAIN,
+            fit=ft.BoxFit.CONTAIN,
         )
         
         self.user_text = ft.Text("Usuário: --", size=12, color=ThemeColors.PRIMARY)
@@ -46,7 +46,7 @@ class SystemSidebar(ft.Container):
 
         # Organização do Conteúdo
         self.content = ft.Column([
-            ft.Container(content=self.logo, alignment=ft.alignment.center, padding=ft.padding.only(bottom=10)),
+            ft.Container(content=self.logo, alignment=ft.alignment.Alignment(0, 0), padding=ft.padding.only(bottom=10)),
             
             ft.Text("SYSTEM MONITOR", weight="bold", size=16, color=ThemeColors.PRIMARY),
             ft.Divider(color=ThemeColors.PRIMARY, height=1),

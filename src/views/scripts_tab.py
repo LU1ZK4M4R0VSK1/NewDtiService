@@ -12,6 +12,7 @@ class ScriptsTab(ft.Container):
         self.category_filter = category_filter
         self.list_view = ft.ListView(expand=True, spacing=10)
         
+        # Inicializar popups como None para agora
         self.popups = None
         self.ticket_popup = None
 

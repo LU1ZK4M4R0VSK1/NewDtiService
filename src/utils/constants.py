@@ -18,13 +18,19 @@ def get_theme():
         color_scheme=ft.ColorScheme(
             primary=ThemeColors.PRIMARY,
             secondary=ThemeColors.SECONDARY,
-            background=ThemeColors.BACKGROUND,
             surface=ThemeColors.SURFACE,
+            surface_container=ThemeColors.SURFACE,
+            surface_container_low=ThemeColors.SURFACE,
+            surface_container_high=ThemeColors.SURFACE,
+            surface_container_highest=ThemeColors.SURFACE,
+            surface_container_lowest=ThemeColors.SURFACE,
+            surface_dim=ThemeColors.SURFACE,
+            surface_bright=ThemeColors.SURFACE,
             error=ThemeColors.ERROR,
-            on_background=ThemeColors.TEXT,
             on_surface=ThemeColors.TEXT,
+            on_primary=ThemeColors.TEXT,
+            outline=ThemeColors.DISABLED,
         ),
         font_family=AppConfig.FONT_FAMILY,
-        # Alterado de ft.ThemeVisualDensity para ft.VisualDensity
         visual_density=ft.VisualDensity.COMFORTABLE, 
     )

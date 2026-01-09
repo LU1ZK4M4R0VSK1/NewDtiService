@@ -85,18 +85,18 @@ class TicketsPopup:
                 self.atendente_dropdown,
             ], tight=True, width=500, spacing=20),
             actions=[
-                ft.TextButton("CANCELAR", on_click=lambda _: self.page.close(modal)),
+                ft.TextButton("CANCELAR", on_click=lambda _: self._close_dialog()),
                 ft.ElevatedButton(
                     "ENVIAR CHAMADO", 
                     bgcolor=ThemeColors.SECONDARY, 
                     color="white",
-                    on_click=lambda _: self.handle_submit(modal)
+                    on_click=lambda _: self.handle_submit()
                 )
             ]
         )
-        self.page.open(modal)
+        self.page.show_dialog(modal)
 
-    def handle_submit(self, modal):
+    def handle_submit(self):
         success, message = self.vm.submit_ticket(
             self.comentario_input.value,
             self.categoria_dropdown.value,
@@ -105,7 +105,7 @@ class TicketsPopup:
         )
         
         if success:
-            self.page.close(modal)
+            self._close_dialog()
             # CORREÇÃO DO SNACKBAR (Nova API do Flet)
             snack = ft.SnackBar(ft.Text(message), bgcolor="green")
             self.page.overlay.append(snack)
@@ -114,3 +114,6 @@ class TicketsPopup:
         else:
             self.comentario_input.error_text = message
             self.page.update()
+
+    def _close_dialog(self):
+        self.page.pop_dialog()

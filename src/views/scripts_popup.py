@@ -1,5 +1,8 @@
 import flet as ft
 from src.utils.constants import ThemeColors
+import threading
+from tkinter import filedialog
+import tkinter as tk
 
 class ScriptsPopups:
     def __init__(self, page: ft.Page, vm, on_refresh):
@@ -7,8 +10,10 @@ class ScriptsPopups:
         self.vm = vm  # ScriptsViewModel
         self.on_refresh = on_refresh
         
-        self.file_picker = ft.FilePicker(on_result=self.on_file_result)
-        self.page.overlay.append(self.file_picker)
+        # Flet 0.80+: FilePicker returns selected files directly from pick_files()
+        self.file_picker = ft.FilePicker()
+        # Register FilePicker as a service in Flet 0.80+
+        self.page.services.append(self.file_picker)
         
         # Estilo aprimorado para evitar sobreposições
         self.field_style = {
@@ -17,40 +22,73 @@ class ScriptsPopups:
             "label_style": ft.TextStyle(color=ThemeColors.PRIMARY),
             "text_style": ft.TextStyle(color="white"),
             "border_radius": 8,
-            "border": ft.InputBorder.OUTLINE, # Força a borda externa
-            "content_padding": ft.padding.all(15), # Espaçamento interno para o texto não bater na label
-            "bgcolor": "#1A1A1A", # Cor sólida evita transparências problemáticas
+            "border": ft.InputBorder.OUTLINE,
+            "content_padding": ft.padding.all(15),
+            "bgcolor": "#1A1A1A",
         }
 
         self.name_input = ft.TextField(label="Nome do Script", **self.field_style)
         self.path_input = ft.TextField(label="Caminho", expand=True, **self.field_style)
         self.desc_input = ft.TextField(label="Descrição", multiline=True, min_lines=3, **self.field_style)
         
-        # Dropdown com correção de sobreposição
         self.cat_input = ft.Dropdown(
             label="Categoria",
             **self.field_style,
-            alignment=ft.alignment.center_left,
-            # Força as opções a terem um estilo limpo
+            align=ft.alignment.Alignment(-1, 0),
             text_size=14,
             options=[
                 ft.dropdown.Option("Procedimentos"),
                 ft.dropdown.Option("Otimizações")
             ],
         )
+        
+        # Store references para uso em callbacks
+        self.current_dialog = None
+        self.current_script_id = None
+        self.is_edit_mode = False
+        
+        self.page.update()
 
-    def on_file_result(self, e: ft.FilePickerResultEvent):
-        if e.files:
-            self.path_input.value = e.files[0].path
-            self.path_input.update()
+    def pick_file(self):
+        """Abre o explorador de arquivos usando tkinter (cross-platform)"""
+        def browse_file():
+            # Cria uma janela root escondida
+            root = tk.Tk()
+            root.withdraw()
+            root.attributes('-topmost', True)
+            
+            # Abre o diálogo
+            file_path = filedialog.askopenfilename(
+                title="Selecione o arquivo do script",
+                filetypes=[("Python scripts", "*.py"), ("Batch scripts", "*.bat"), ("PowerShell scripts", "*.ps1"), ("All files", "*.*")]
+            )
+            
+            # Atualiza o campo se um arquivo foi selecionado
+            if file_path:
+                self.path_input.value = file_path
+                self.path_input.update()
+            
+            root.destroy()
+        
+        # Executa em thread separada para não bloquear a UI
+        thread = threading.Thread(target=browse_file, daemon=True)
+        thread.start()
 
     def open_form(self, script=None):
+        """Abre o formulário de adicionar/editar script"""
         is_edit = script is not None
+        
+        # Preenche os campos
         self.name_input.value = script.name if is_edit else ""
         self.path_input.value = script.path if is_edit else ""
         self.desc_input.value = script.description if is_edit else ""
         self.cat_input.value = script.category if is_edit else "Procedimentos"
-
+        
+        # Armazena contexto
+        self.current_script_id = script.id if is_edit else None
+        self.is_edit_mode = is_edit
+        
+        # Cria o diálogo
         modal = ft.AlertDialog(
             title=ft.Text(
                 "EDITAR SCRIPT" if is_edit else "NOVO SCRIPT", 
@@ -69,7 +107,7 @@ class ScriptsPopups:
                             ft.Icons.FOLDER_OPEN, 
                             icon_color=ThemeColors.PRIMARY,
                             tooltip="Selecionar arquivo",
-                            on_click=lambda _: self.file_picker.pick_files()
+                            on_click=lambda _: self.pick_file()
                         )
                     ], spacing=10),
                     self.desc_input
@@ -78,21 +116,21 @@ class ScriptsPopups:
                 padding=ft.padding.symmetric(vertical=10)
             ),
             actions=[
-                ft.TextButton("CANCELAR", on_click=lambda _: self.page.close(modal)),
+                ft.TextButton("CANCELAR", on_click=lambda _: self._close_dialog()),
                 ft.ElevatedButton(
                     "SALVAR", 
                     bgcolor=ThemeColors.PRIMARY, 
                     color="black",
                     style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=8)),
-                    on_click=lambda _: self.save_action(modal, script.id if is_edit else None)
+                    on_click=lambda _: self.save_action(self.current_script_id)
                 )
             ],
             actions_alignment=ft.MainAxisAlignment.END
         )
-        self.page.open(modal)
+        
+        self.page.show_dialog(modal)
 
-    # ... (save_action, confirm_delete e delete_action permanecem iguais)
-    def save_action(self, modal, script_id=None):
+    def save_action(self, script_id=None):
         if self.name_input.value and self.path_input.value:
             if script_id:
                 self.vm.db.execute_query(
@@ -102,7 +140,7 @@ class ScriptsPopups:
             else:
                 self.vm.add_script(self.name_input.value, self.cat_input.value, self.path_input.value, self.desc_input.value)
             
-            self.page.close(modal)
+            self._close_dialog()
             self.on_refresh()
 
     def confirm_delete(self, script):
@@ -110,13 +148,17 @@ class ScriptsPopups:
             title=ft.Text("EXCLUIR SCRIPT", color=ft.Colors.ERROR, weight="bold"),
             content=ft.Text(f"Deseja apagar '{script.name}'?"),
             actions=[
-                ft.TextButton("CANCELAR", on_click=lambda _: self.page.close(modal)),
-                ft.ElevatedButton("EXCLUIR", bgcolor=ft.Colors.ERROR, on_click=lambda _: self.delete_action(script.id, modal))
+                ft.TextButton("CANCELAR", on_click=lambda _: self._close_dialog()),
+                ft.ElevatedButton("EXCLUIR", bgcolor=ft.Colors.ERROR, on_click=lambda _: self.delete_action(script.id))
             ]
         )
-        self.page.open(modal)
+        self.page.show_dialog(modal)
 
-    def delete_action(self, script_id, modal):
+    def delete_action(self, script_id):
         self.vm.db.execute_query("DELETE FROM scripts WHERE id=?", (script_id,))
-        self.page.close(modal)
+        self._close_dialog()
+        self.on_refresh()
+
+    def _close_dialog(self):
+        self.page.pop_dialog()
         self.on_refresh()
