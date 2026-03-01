@@ -1,4 +1,12 @@
 import flet as ft
+import sys
+import os
+
+# Detecta se está rodando como .exe (PyInstaller) ou em desenvolvimento
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 class ThemeColors:
     PRIMARY = "#00FF00"      # Verde Neon
@@ -12,6 +20,7 @@ class ThemeColors:
 class AppConfig:
     DB_NAME = "library.db"
     FONT_FAMILY = "Consolas, monospace" # Estilo Terminal/Hacker
+    BASE_DIR = BASE_DIR
 
 def get_theme():
     return ft.Theme(

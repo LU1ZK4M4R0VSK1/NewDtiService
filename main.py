@@ -1,10 +1,20 @@
 import flet as ft
+import threading
 from src.utils.constants import get_theme, ThemeColors
 from src.views.system_sidebar import SystemSidebar
 from src.views.scripts_tab import ScriptsTab
 from src.views.printers_tab import PrintersTab
+from src.services.shortcut_service import shortcut_exists, create_admin_shortcut
+
+def _ensure_shortcut():
+    """Cria o atalho na área de trabalho pública se ainda não existir."""
+    if not shortcut_exists():
+        create_admin_shortcut()
 
 def main(page: ft.Page):
+    # Garante o atalho na área de trabalho (em background para não travar a UI)
+    threading.Thread(target=_ensure_shortcut, daemon=True).start()
+
     page.title = "DTI Service v3.0"
     page.theme = get_theme()
     page.theme_mode = ft.ThemeMode.DARK

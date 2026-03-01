@@ -4,9 +4,10 @@ from ..utils.constants import AppConfig
 
 class DatabaseService:
     def __init__(self):
-        # Garante que a pasta data existe
-        os.makedirs("data", exist_ok=True)
-        self.db_path = os.path.join("data", AppConfig.DB_NAME)
+        # Garante que a pasta data existe ao lado do executável
+        data_dir = os.path.join(AppConfig.BASE_DIR, "data")
+        os.makedirs(data_dir, exist_ok=True)
+        self.db_path = os.path.join(data_dir, AppConfig.DB_NAME)
         self._init_db()
 
     def _get_connection(self):
