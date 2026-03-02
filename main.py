@@ -7,9 +7,8 @@ from src.views.printers_tab import PrintersTab
 from src.services.shortcut_service import shortcut_exists, create_admin_shortcut
 
 def _ensure_shortcut():
-    """Cria o atalho na área de trabalho pública se ainda não existir."""
-    if not shortcut_exists():
-        create_admin_shortcut()
+    """Garante que o atalho na área de trabalho pública esteja atualizado."""
+    create_admin_shortcut()
 
 def main(page: ft.Page):
     # Garante o atalho na área de trabalho (em background para não travar a UI)

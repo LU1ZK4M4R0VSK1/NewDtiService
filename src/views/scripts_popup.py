@@ -132,16 +132,32 @@ class ScriptsPopups:
 
     def save_action(self, script_id=None):
         if self.name_input.value and self.path_input.value:
+            success = False
+            error_msg = ""
+            
             if script_id:
-                self.vm.db.execute_query(
+                success, error_msg = self.vm.db.execute_query(
                     "UPDATE scripts SET name=?, category=?, path=?, description=? WHERE id=?",
                     (self.name_input.value, self.cat_input.value, self.path_input.value, self.desc_input.value, script_id)
                 )
             else:
-                self.vm.add_script(self.name_input.value, self.cat_input.value, self.path_input.value, self.desc_input.value)
+                success, error_msg = self.vm.add_script(self.name_input.value, self.cat_input.value, self.path_input.value, self.desc_input.value)
             
             self._close_dialog()
             self.on_refresh()
+            
+            # Feedback visual detalhado
+            if success:
+                msg = "Salvo e Sincronizado com a rede!"
+                color = "green"
+            else:
+                msg = f"ERRO DE REDE: {error_msg}"
+                color = "orange"
+                
+            snack = ft.SnackBar(ft.Text(msg), bgcolor=color, duration=5000)
+            self.page.overlay.append(snack)
+            snack.open = True
+            self.page.update()
 
     def confirm_delete(self, script):
         modal = ft.AlertDialog(
@@ -155,9 +171,22 @@ class ScriptsPopups:
         self.page.show_dialog(modal)
 
     def delete_action(self, script_id):
-        self.vm.db.execute_query("DELETE FROM scripts WHERE id=?", (script_id,))
+        success, error_msg = self.vm.db.execute_query("DELETE FROM scripts WHERE id=?", (script_id,))
         self._close_dialog()
         self.on_refresh()
+        
+        # Feedback visual detalhado
+        if success:
+            msg = "Script excluído e Sincronizado!"
+            color = "green"
+        else:
+            msg = f"ERRO AO SINCRONIZAR EXCLUSÃO: {error_msg}"
+            color = "orange"
+            
+        snack = ft.SnackBar(ft.Text(msg), bgcolor=color, duration=5000)
+        self.page.overlay.append(snack)
+        snack.open = True
+        self.page.update()
 
     def _close_dialog(self):
         self.page.pop_dialog()

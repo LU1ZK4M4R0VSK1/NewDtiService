@@ -35,7 +35,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\Dudu\\AppData\\Local\\Temp\\4551f9c7-28e9-4b48-85b1-62627e41ab87',
+    version='C:\\Users\\LUIZKA~1.CIM\\AppData\\Local\\Temp\\aeb77e4c-29cd-44ea-8465-06fd23cfc3ff',
     uac_admin=True,
-    icon=['src\\assets\\dti_service.ico'],
+    icon=['src\\assets\\dti_service_v2.ico'],
 )
