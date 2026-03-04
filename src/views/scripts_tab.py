@@ -57,10 +57,23 @@ class ScriptsTab(ft.Container):
         output_text.value = f"> Executando {script.name}...\n"
         output_text.color = ThemeColors.TEXT
         self.update()
-        success, result = self.vm.run_script(script)
-        output_text.value += result
+        self.page.run_thread(lambda: self._run_script_worker(script, output_text))
+
+    def _run_script_worker(self, script, output_text):
+        def append_chunk(chunk: str):
+            output_text.value += chunk
+            self.page.update()
+
+        success, result = self.vm.run_script(script, on_output=append_chunk)
+
+        if not success:
+            normalized_result = (result or "").strip()
+            current = (output_text.value or "")
+            if normalized_result and normalized_result not in current:
+                output_text.value += f"\n{normalized_result}\n"
+
         output_text.color = ThemeColors.PRIMARY if success else ThemeColors.ERROR
-        self.update()
+        self.page.update()
 
     def build_script_item(self, script):
         output_view = ft.Text(value="> Pronto.", font_family="Consolas", size=11)

@@ -24,8 +24,8 @@ class ScriptsViewModel:
         self.load_scripts()
         return success, error_msg
 
-    def run_script(self, script: Script):
-        success, output = self.runner.run_script(script.path)
+    def run_script(self, script: Script, on_output=None):
+        success, output = self.runner.run_script(script.path, on_output=on_output)
         
         # Logar execução
         status = "SUCCESS" if success else "ERROR"

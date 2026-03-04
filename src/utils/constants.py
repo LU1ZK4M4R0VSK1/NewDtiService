@@ -21,6 +21,7 @@ class AppConfig:
     DB_NAME = "library.db"
     FONT_FAMILY = "Consolas, monospace" # Estilo Terminal/Hacker
     BASE_DIR = BASE_DIR
+    SCRIPT_TIMEOUT_SECONDS = 300
 
 def get_theme():
     return ft.Theme(

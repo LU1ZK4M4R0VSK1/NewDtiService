@@ -113,11 +113,17 @@ Write-Output "Atalho e ícone atualizados"
 """
 
     try:
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = 0
+
         # Force a local working directory (C:\) to avoid "UNC paths are not supported" errors in PowerShell
         result = subprocess.run(
-            ["powershell", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
+            ["powershell", "-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
             capture_output=True, text=True, timeout=30,
-            cwd="C:\\"
+            cwd="C:\\",
+            startupinfo=startupinfo,
+            creationflags=subprocess.CREATE_NO_WINDOW,
         )
         _log(f"[ps] returncode={result.returncode}")
         _log(f"[ps] stdout={result.stdout.strip()}")

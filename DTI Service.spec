@@ -1,11 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+from PyInstaller.utils.hooks import collect_data_files
+
+flet_desktop_datas = collect_data_files("flet_desktop", includes=["app/**/*"])
+flet_datas = collect_data_files("flet")
 
 a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('src/assets', 'src/assets')],
+    datas=[('src/assets', 'src/assets'), *flet_desktop_datas, *flet_datas],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -35,7 +39,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='C:\\Users\\LUIZKA~1.CIM\\AppData\\Local\\Temp\\aeb77e4c-29cd-44ea-8465-06fd23cfc3ff',
+    version=None,
     uac_admin=True,
     icon=['src\\assets\\dti_service_v2.ico'],
 )
